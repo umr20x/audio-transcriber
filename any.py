@@ -6,10 +6,8 @@ import tempfile
 from docx import Document
 from io import BytesIO
 
-# إعداد صفحة Streamlit
 st.set_page_config(page_title="🎧 تفريغ الصوتية", layout="centered")
 
-# CSS لتعديل التصميم
 page_style = """
 <style>
     .stApp {
@@ -28,7 +26,7 @@ page_style = """
         margin-top: 0;
         margin-bottom: 30px;
         color: black;
-        white-space: pre-line; /* للحفاظ على التنسيق والأسطر */
+        white-space: pre-line;
     }
     .custom-textarea textarea {
         background-color: white !important;
@@ -43,15 +41,12 @@ page_style = """
 """
 st.markdown(page_style, unsafe_allow_html=True)
 
-# العنوان والنص التوضيحي مع النص الجديد
 st.markdown('<h1 class="main-header">🎧 تفريغ الصوتية</h1>', unsafe_allow_html=True)
 
 new_text = """🥹✨إلـى شـيـخـتـي وأمـي الــحــبــيــبــة أقــدم لــكِ هــذه الــهديــة البــسيــطــة 🎁 بــمــنــاســبــة أنــكِ أصــبــحــتِ جــدة
 🥹💝✨صــنــع بــحــب مــن طالـبـتـك الـمــجــتــهـدة بـدور"""
-
 st.markdown(f'<p class="sub-header">{new_text}</p>', unsafe_allow_html=True)
 
-# رفع الملف
 uploaded_file = st.file_uploader("📤 ارفعي ملف صوتي أو فيديو", type=["mp3", "wav", "m4a", "ogg", "flac", "mp4", "mov", "avi", "mkv"])
 
 if uploaded_file:
@@ -66,7 +61,7 @@ if uploaded_file:
         sound.export(wav_path, format="wav")
 
         recognizer = sr.Recognizer()
-        chunk_length = 30 * 1000
+        chunk_length = 20 * 1000  # 20 ثانية بدل 30
         total_length = len(sound)
         chunks = list(range(0, total_length, chunk_length))
 
@@ -81,7 +76,7 @@ if uploaded_file:
             chunk.export(chunk_file, format="wav")
 
             with sr.AudioFile(chunk_file) as source:
-                recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                recognizer.adjust_for_ambient_noise(source, duration=1)  # زيادة مدة الضبط للضوضاء
                 audio = recognizer.record(source)
 
             try:
@@ -103,7 +98,6 @@ if uploaded_file:
             st.text_area("", value=full_text, height=500)
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # إنشاء ملف وورد في الذاكرة
         doc = Document()
         for line in full_text.split('\n'):
             doc.add_paragraph(line)
