@@ -3,6 +3,8 @@ import streamlit as st
 from pydub import AudioSegment
 import speech_recognition as sr
 import tempfile
+from docx import Document
+from io import BytesIO
 
 # إعداد صفحة Streamlit
 st.set_page_config(page_title="🎧 تفريغ الصوتية", layout="centered")
@@ -101,7 +103,21 @@ if uploaded_file:
             st.text_area("", value=full_text, height=500)
             st.markdown('</div>', unsafe_allow_html=True)
 
-        st.download_button("📥 تحميل النص", data=full_text, file_name="transcription.txt", use_container_width=True)
+        # إنشاء ملف وورد في الذاكرة
+        doc = Document()
+        for line in full_text.split('\n'):
+            doc.add_paragraph(line)
+        doc_stream = BytesIO()
+        doc.save(doc_stream)
+        doc_stream.seek(0)
+
+        st.download_button(
+            label="📥 تحميل النص بصيغة وورد (.docx)",
+            data=doc_stream,
+            file_name="transcription.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True,
+        )
 
         os.remove(input_path)
         os.remove(wav_path)
