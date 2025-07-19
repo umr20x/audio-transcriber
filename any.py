@@ -4,8 +4,42 @@ from pydub import AudioSegment
 import speech_recognition as sr
 import tempfile
 
-st.title("🎧 تفريغ صوتي من أي ملف صوتي أو فيديو عبر الإنترنت باستخدام Google Speech Recognition")
+# إعداد صفحة Streamlit
+st.set_page_config(page_title="🎧 تفريغ الصوتية", layout="centered")
 
+# إضافة CSS لتغيير لون خلفية الصفحة ولون الخط
+page_bg = """
+<style>
+    .stApp {
+        background-color: #eec9b0;
+        color: black;  /* لون الخط الأسود عام */
+    }
+    .main-header {
+        font-size: 48px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 0;
+        color: black;  /* لون الخط الأسود */
+    }
+    .sub-header {
+        font-size: 20px;
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 30px;
+        color: black;  /* لون الخط الأسود */
+    }
+    textarea {
+        color: black !important;  /* نص مربع النص */
+    }
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
+
+# العنوان والنص تحته (بدون كلمة "مع سماعات")
+st.markdown('<h1 class="main-header">🎧 تــفــريــغ الــصــوتــيــة</h1>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">هــديــة بــســيطــة 🎁 بــمــنــاســبــة أنــكِ أصــبــحــتِ جــدة🥹✨صــنــع بـحــب💝 مــن طالبــتــك المجتهدة</p>', unsafe_allow_html=True)
+
+# رفع الملف
 uploaded_file = st.file_uploader("📤 ارفع ملف صوتي أو فيديو", type=["mp3","wav","m4a","ogg","flac","mp4","mov","avi","mkv"])
 
 if uploaded_file:
@@ -20,7 +54,7 @@ if uploaded_file:
         sound.export(wav_path, format="wav")
 
         recognizer = sr.Recognizer()
-        chunk_length = 30 * 1000  # 30 ثانية لكل جزء
+        chunk_length = 30 * 1000
         total_length = len(sound)
         chunks = list(range(0, total_length, chunk_length))
 
@@ -51,8 +85,10 @@ if uploaded_file:
             progress_bar.progress((i+1)/len(chunks))
 
         st.success("✅ تم استخراج النص بنجاح!")
-        st.text_area("📄 النص المستخرج:", value=full_text, height=400)
-        st.download_button("📥 تحميل النص", data=full_text, file_name="transcription.txt")
+        with st.expander("📄 عرض النص المستخرج"):
+            st.text_area("", value=full_text, height=400)
+
+        st.download_button("📥 تحميل النص", data=full_text, file_name="transcription.txt", use_container_width=True)
 
         os.remove(input_path)
         os.remove(wav_path)
