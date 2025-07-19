@@ -6,8 +6,10 @@ import tempfile
 from docx import Document
 from io import BytesIO
 
+# إعداد صفحة Streamlit
 st.set_page_config(page_title="🎧 تفريغ الصوتية", layout="centered")
 
+# CSS لتعديل التصميم
 page_style = """
 <style>
     .stApp {
@@ -41,12 +43,13 @@ page_style = """
 """
 st.markdown(page_style, unsafe_allow_html=True)
 
+# العنوان والنص التوضيحي
 st.markdown('<h1 class="main-header">🎧 تفريغ الصوتية</h1>', unsafe_allow_html=True)
-
 new_text = """🥹✨إلـى شـيـخـتـي وأمـي الــحــبــيــبــة أقــدم لــكِ هــذه الــهديــة البــسيــطــة 🎁 بــمــنــاســبــة أنــكِ أصــبــحــتِ جــدة
 🥹💝✨صــنــع بــحــب مــن طالـبـتـك الـمــجــتــهـدة بـدور"""
 st.markdown(f'<p class="sub-header">{new_text}</p>', unsafe_allow_html=True)
 
+# رفع الملف
 uploaded_file = st.file_uploader("📤 ارفعي ملف صوتي أو فيديو", type=["mp3", "wav", "m4a", "ogg", "flac", "mp4", "mov", "avi", "mkv"])
 
 if uploaded_file:
@@ -55,13 +58,22 @@ if uploaded_file:
         input_path = temp_input.name
 
     try:
+        # تحسين الصوت قبل التحويل
         sound = AudioSegment.from_file(input_path)
         sound = sound.set_channels(1).set_frame_rate(16000)
+
+        # ✨ تحسين الصوت:
+        sound = sound.normalize()  # ضبط مستوى الصوت
+        sound = sound.low_pass_filter(3000)  # تقليل الأصوات العالية
+        sound = sound.high_pass_filter(200)  # تقليل الضوضاء المنخفضة
+
+        # تصدير الصوت بعد التحسين
         wav_path = input_path + "_converted.wav"
         sound.export(wav_path, format="wav")
 
+        # التعرف على الصوت
         recognizer = sr.Recognizer()
-        chunk_length = 20 * 1000  # 20 ثانية بدل 30
+        chunk_length = 30 * 1000  # 30 ثانية
         total_length = len(sound)
         chunks = list(range(0, total_length, chunk_length))
 
@@ -76,7 +88,7 @@ if uploaded_file:
             chunk.export(chunk_file, format="wav")
 
             with sr.AudioFile(chunk_file) as source:
-                recognizer.adjust_for_ambient_noise(source, duration=1)  # زيادة مدة الضبط للضوضاء
+                recognizer.adjust_for_ambient_noise(source, duration=0.5)
                 audio = recognizer.record(source)
 
             try:
@@ -98,6 +110,7 @@ if uploaded_file:
             st.text_area("", value=full_text, height=500)
             st.markdown('</div>', unsafe_allow_html=True)
 
+        # حفظ كملف Word
         doc = Document()
         for line in full_text.split('\n'):
             doc.add_paragraph(line)
